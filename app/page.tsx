@@ -1,94 +1,141 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { ArrowUpRight, Check, CircleDot, LockKeyhole, Orbit, PlugZap, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowUpRight, Check, CircleDot, Command, Database, LockKeyhole, Mail, Orbit, Search, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 
 const AgentScene = dynamic(()=>import('@/components/AgentScene'),{ssr:false})
 
+const chapters = [
+  ['01','MAP THE DULL WORK','We find the repetitive decisions, handoffs and follow-ups that quietly eat your week.'],
+  ['02','GIVE IT TOOLS','Your worker gets the exact accounts and systems it needs. Nothing else.'],
+  ['03','PUT RULES AROUND IT','The model can reason. Deterministic policy decides what it may actually do.'],
+  ['04','LET IT KEEP GOING','Standing orders, scheduled jobs and durable memory mean the work continues after you leave.']
+]
+
 const workers = [
-  ['INBOX WORKER','Reads, sorts, drafts, follows up and keeps the important things from vanishing.'],
-  ['SALES WORKER','Researches prospects, prepares outreach, tracks replies and nudges the pipeline forward.'],
-  ['EXECUTIVE WORKER','Prepares meetings, watches calendars, gathers context and keeps a running brief.'],
-  ['CUSTOM WORKER','We map the repetitive parts of your actual job and build around those, not a template.']
+  ['INBOX','Reads, sorts, drafts and follows up without turning your email into another dashboard.',Mail],
+  ['SALES','Researches prospects, prepares outreach, tracks replies and keeps the pipeline moving.',Workflow],
+  ['RESEARCH','Watches sources, gathers evidence, synthesises findings and leaves a useful brief.',Search],
+  ['CUSTOM','We map the annoying bits of your actual job and build the worker around those.',Sparkles]
 ]
 
-const stack = [
-  ['01','Isolated','Your agent gets its own gateway, storage and credentials. No shared customer brain.'],
-  ['02','Connected','You choose the accounts it may use. Gmail, Drive, calendar, CRM, Shopify and more.'],
-  ['03','Guarded','The AI can decide what to do. Deterministic rules decide what it is allowed to do.'],
-  ['04','Managed','We watch health, logs, automations and broken connections so you do not become its IT department.']
-]
+function Reveal({children,className=''}:{children:React.ReactNode,className?:string}){
+  const ref=useRef<HTMLDivElement>(null)
+  const [seen,setSeen]=useState(false)
+  useEffect(()=>{
+    const el=ref.current
+    if(!el)return
+    const io=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){setSeen(true);io.disconnect()}},{threshold:.16})
+    io.observe(el)
+    return()=>io.disconnect()
+  },[])
+  return <div ref={ref} className={`reveal ${seen?'is-seen':''} ${className}`}>{children}</div>
+}
 
-function Reveal({children,delay=0}:{children:React.ReactNode,delay?:number}){
-  return <div className="reveal" style={{animationDelay:`${delay}s`}}>{children}</div>
+function Cursor(){
+  const dot=useRef<HTMLDivElement>(null)
+  const ring=useRef<HTMLDivElement>(null)
+  useEffect(()=>{
+    let x=0,y=0,rx=0,ry=0,raf=0
+    const move=(e:PointerEvent)=>{x=e.clientX;y=e.clientY;if(dot.current)dot.current.style.transform=`translate3d(${x}px,${y}px,0)`}
+    const loop=()=>{rx+=(x-rx)*.13;ry+=(y-ry)*.13;if(ring.current)ring.current.style.transform=`translate3d(${rx}px,${ry}px,0)`;raf=requestAnimationFrame(loop)}
+    window.addEventListener('pointermove',move);raf=requestAnimationFrame(loop)
+    return()=>{window.removeEventListener('pointermove',move);cancelAnimationFrame(raf)}
+  },[])
+  return <><div ref={ring} className="cursor-ring"/><div ref={dot} className="cursor-dot"/></>
+}
+
+function ScrollProgress(){
+  const ref=useRef<HTMLDivElement>(null)
+  useEffect(()=>{
+    const run=()=>{const h=document.documentElement.scrollHeight-innerHeight;const p=h?scrollY/h:0;if(ref.current)ref.current.style.transform=`scaleX(${p})`}
+    run();addEventListener('scroll',run,{passive:true});return()=>removeEventListener('scroll',run)
+  },[])
+  return <div ref={ref} className="scroll-progress"/>
 }
 
 export default function Home(){
   return <main>
+    <Cursor/><ScrollProgress/>
+
     <nav className="nav shell">
       <a className="brand" href="#top"><span className="mark">C</span>CLAWHOUSE</a>
-      <div className="nav-links"><a href="#workers">Workers</a><a href="#how">How it works</a><a href="#pricing">Pricing</a></div>
-      <a className="nav-cta" href="mailto:hello@studiobeasophia.com?subject=Build%20my%20AI%20worker">Build mine <ArrowUpRight size={15}/></a>
+      <div className="nav-index"><span>MANAGED AI WORKERS</span><span>EST. 2026</span></div>
+      <a className="nav-cta magnetic" href="mailto:hello@studiobeasophia.com?subject=Build%20my%20AI%20worker">BUILD MINE <ArrowUpRight size={14}/></a>
     </nav>
 
-    <section id="top" className="hero shell">
-      <div className="hero-grid">
-        <div className="hero-copy">
-          <div className="eyebrow"><CircleDot size={13}/> PRIVATE AI, ACTUALLY WORKING</div>
-          <h1>Your quietest<br/>employee <em>never</em><br/>clocks off.</h1>
-          <p className="lede">We install a private AI worker around the way your business already works. It reads, researches, organises, follows up and keeps going after you close the laptop.</p>
-          <div className="hero-actions">
-            <a className="button primary" href="mailto:hello@studiobeasophia.com?subject=Build%20my%20AI%20worker">Build my worker <ArrowUpRight size={17}/></a>
-            <a className="text-link" href="#how">See the system ↓</a>
-          </div>
-          <div className="proofline"><span><ShieldCheck size={15}/> isolated per customer</span><span><LockKeyhole size={15}/> you own the credentials</span><span><Orbit size={15}/> runs continuously</span></div>
-        </div>
-        <div className="hero-visual"><AgentScene/><div className="visual-caption"><span>AGENT STATUS</span><b>ONLINE</b></div></div>
+    <section id="top" className="hero-awwwards">
+      <div className="hero-gridline hero-gridline-a"/><div className="hero-gridline hero-gridline-b"/>
+      <div className="hero-serial">PRIVATE / AUTONOMOUS / YOURS</div>
+      <div className="hero-scene"><AgentScene/></div>
+      <div className="hero-copy-a shell">
+        <div className="eyebrow"><CircleDot size={12}/> PRIVATE AI, ACTUALLY WORKING</div>
+        <h1><span>YOUR</span><span>QUIETEST</span><span className="italic">EMPLOYEE</span></h1>
+      </div>
+      <div className="hero-bottom shell">
+        <p>We install a private AI worker around the way your business already works. It researches, organises, follows up and keeps moving after you close the laptop.</p>
+        <div className="hero-bottom-actions"><a className="button black" href="mailto:hello@studiobeasophia.com?subject=Build%20my%20AI%20worker">BUILD MY WORKER <ArrowUpRight size={16}/></a><a className="round-link" href="#system">↓</a></div>
+      </div>
+      <div className="status-pill"><span className="live-dot"/> WORKER ONLINE <b>24 / 7</b></div>
+    </section>
+
+    <section className="ticker" aria-label="capabilities"><div>GMAIL <i>↗</i> CALENDAR <i>↗</i> RESEARCH <i>↗</i> SALES <i>↗</i> DRIVE <i>↗</i> CRM <i>↗</i> SHOPIFY <i>↗</i> YOUR WORKFLOW <i>↗</i> </div></section>
+
+    <section className="manifesto shell">
+      <Reveal>
+        <p className="overline">NOT ANOTHER CHAT WINDOW</p>
+        <p className="manifesto-line">Most AI waits for you.</p>
+        <p className="manifesto-line offset">Yours gets <em>a job.</em></p>
+      </Reveal>
+      <div className="manifesto-notes"><span>STANDING ORDERS</span><span>SCHEDULED WORK</span><span>DURABLE MEMORY</span><span>REAL TOOLS</span></div>
+    </section>
+
+    <section id="system" className="machine-room">
+      <div className="machine-sticky shell">
+        <div className="machine-title"><span>HOW IT BECOMES USEFUL</span><h2>We build the<br/><em>machine room.</em></h2></div>
+        <div className="machine-telemetry"><span>GATEWAY: PRIVATE</span><span>STATE: PERSISTENT</span><span>POLICY: ENFORCED</span></div>
+      </div>
+      <div className="chapter-list shell">
+        {chapters.map(([n,t,d],i)=><Reveal key={n}><article className="chapter"><div className="chapter-number">{n}</div><div><h3>{t}</h3><p>{d}</p></div><div className="chapter-orbit"><span>{i===0?'DISCOVER':i===1?'CONNECT':i===2?'GUARD':'RUN'}</span></div></article></Reveal>)}
       </div>
     </section>
 
-    <section className="marquee" aria-label="capabilities"><div>GMAIL <i>✦</i> CALENDAR <i>✦</i> RESEARCH <i>✦</i> SALES <i>✦</i> DRIVE <i>✦</i> CRM <i>✦</i> SHOPIFY <i>✦</i> YOUR WORKFLOW <i>✦</i></div></section>
-
-    <section id="workers" className="section shell">
-      <Reveal><div className="section-head"><p className="kicker">NOT A CHATBOT</p><h2>Give it a job,<br/>not a conversation.</h2><p>Most AI waits for you to ask a question. Yours gets standing orders, scheduled work, tools and a memory of what it is responsible for.</p></div></Reveal>
-      <div className="worker-grid">
-        {workers.map((w,i)=><Reveal key={w[0]} delay={i*.06}><article className="worker-card"><span>0{i+1}</span><div className="worker-icon">{i===0?<Sparkles/>:i===1?<Workflow/>:i===2?<PlugZap/>:<Orbit/>}</div><h3>{w[0]}</h3><p>{w[1]}</p><div className="card-rule"/></article></Reveal>)}
+    <section id="workers" className="workers-section">
+      <div className="shell worker-head"><p className="overline">CHOOSE THE FIRST JOB</p><h2>One worker.<br/><em>One clear responsibility.</em></h2></div>
+      <div className="worker-rail">
+        {workers.map(([name,desc,Icon],i)=>{
+          const WorkerIcon=Icon as React.ElementType
+          return <article className="worker-panel" key={name as string}><div className="panel-top"><span>0{i+1}</span><WorkerIcon/></div><h3>{name as string}</h3><p>{desc as string}</p><div className="panel-foot"><span>PRIVATE INSTANCE</span><ArrowUpRight/></div></article>
+        })}
       </div>
     </section>
 
-    <section id="how" className="section dark-band">
-      <div className="shell">
-        <Reveal><div className="section-head light"><p className="kicker">THE PRIVATE CONTROL PLANE</p><h2>One business.<br/>One isolated brain.</h2><p>Every customer gets their own agent boundary. We never build a giant shared machine with everybody’s keys rattling around inside it.</p></div></Reveal>
-        <div className="architecture">
-          <div className="arch-core"><span>YOUR<br/>BUSINESS</span></div>
-          <div className="arch-line"/>
-          <div className="arch-gateway"><span>PRIVATE GATEWAY</span><b>24 / 7</b></div>
-          <div className="arch-line"/>
-          <div className="arch-tools"><span>TOOLS</span><span>RULES</span><span>MEMORY</span><span>JOBS</span></div>
-        </div>
-        <div className="stack-grid">{stack.map(([n,t,d])=><div className="stack-item" key={n}><span>{n}</span><h3>{t}</h3><p>{d}</p></div>)}</div>
+    <section className="control-plane shell">
+      <Reveal className="control-intro"><p className="overline">THE PRIVATE CONTROL PLANE</p><h2>One business.<br/>One isolated brain.</h2><p>Every customer gets their own agent boundary, persistent workspace and credentials. We do not put everybody inside one giant shared machine.</p></Reveal>
+      <div className="control-diagram">
+        <div className="control-node business-node"><span>YOUR<br/>BUSINESS</span></div>
+        <div className="control-wire"><i/><i/><i/></div>
+        <div className="gateway-card"><div className="gateway-head"><Command/><span>PRIVATE GATEWAY</span></div><strong>24:00:00</strong><small>ALWAYS-ON CONTROL PLANE</small></div>
+        <div className="control-wire"><i/><i/><i/></div>
+        <div className="tool-cluster"><span><Database/> MEMORY</span><span><ShieldCheck/> RULES</span><span><Orbit/> JOBS</span><span><LockKeyhole/> SECRETS</span></div>
       </div>
     </section>
 
-    <section className="section shell outcome">
-      <Reveal><p className="giant-quote">“Tell us the repetitive parts of your job. <span>We build the employee.</span>”</p></Reveal>
-      <div className="outcome-grid">
-        <div><p className="metric">24/7</p><p>standing automations can keep moving while your laptop is shut</p></div>
-        <div><p className="metric">1:1</p><p>isolated customer environments rather than a shared agent free-for-all</p></div>
-        <div><p className="metric">BYOK</p><p>bring your own model key, or start with free-tier model routing where appropriate</p></div>
+    <section className="statement-band">
+      <div className="shell"><Reveal><p>TELL US THE REPETITIVE PARTS OF YOUR JOB.</p><h2>WE BUILD<br/><em>THE EMPLOYEE.</em></h2></Reveal></div>
+    </section>
+
+    <section id="pricing" className="pricing-new shell">
+      <div className="pricing-aside"><p className="overline">PILOT PRICING</p><h2>Start with<br/>one useful thing.</h2><p>We scope one responsibility, build the worker around it, then expand only when it is proving useful.</p></div>
+      <div className="pricing-main">
+        <article className="price-feature"><div className="price-head"><span>SMALL BUSINESS</span><span className="live-dot"/></div><div className="price-figure">£300 <small>setup</small></div><p>from £149 / month</p><ul><li><Check/>private managed gateway</li><li><Check/>multiple workflows</li><li><Check/>custom standing orders</li><li><Check/>health monitoring</li></ul><a href="mailto:hello@studiobeasophia.com?subject=Small%20business%20AI%20worker">BUILD MY WORKER <ArrowUpRight/></a></article>
+        <div className="price-small-grid"><article><span>SOLO</span><strong>£99</strong><p>setup · from £39/month</p><a href="mailto:hello@studiobeasophia.com?subject=Solo%20AI%20worker">START SMALL ↗</a></article><article><span>CUSTOM EMPLOYEE</span><strong>£750+</strong><p>setup · from £250/month</p><a href="mailto:hello@studiobeasophia.com?subject=Custom%20AI%20employee">SCOPE THE JOB ↗</a></article></div>
       </div>
     </section>
 
-    <section id="pricing" className="section pricing shell">
-      <Reveal><div className="section-head"><p className="kicker">START SMALL</p><h2>Less software.<br/>More finished work.</h2></div></Reveal>
-      <div className="price-grid">
-        <article className="price-card"><p className="plan">SOLO</p><h3>£99 <small>setup</small></h3><p className="monthly">from £39 / month</p><ul><li><Check/>one private worker</li><li><Check/>core integrations</li><li><Check/>managed updates</li><li><Check/>health monitoring</li></ul><a href="mailto:hello@studiobeasophia.com?subject=Solo%20AI%20worker">Start with Solo <ArrowUpRight size={16}/></a></article>
-        <article className="price-card featured"><div className="popular">BEST PLACE TO BEGIN</div><p className="plan">SMALL BUSINESS</p><h3>£300 <small>setup</small></h3><p className="monthly">from £149 / month</p><ul><li><Check/>private managed gateway</li><li><Check/>multiple workflows</li><li><Check/>custom standing orders</li><li><Check/>priority maintenance</li></ul><a href="mailto:hello@studiobeasophia.com?subject=Small%20business%20AI%20worker">Build my worker <ArrowUpRight size={16}/></a></article>
-        <article className="price-card"><p className="plan">CUSTOM EMPLOYEE</p><h3>£750+ <small>setup</small></h3><p className="monthly">from £250 / month</p><ul><li><Check/>workflow mapping</li><li><Check/>bespoke tools</li><li><Check/>advanced guardrails</li><li><Check/>ongoing optimisation</li></ul><a href="mailto:hello@studiobeasophia.com?subject=Custom%20AI%20employee">Scope the job <ArrowUpRight size={16}/></a></article>
-      </div>
-      <p className="pricing-note">Pilot pricing. Model/API usage or paid third-party services are separate where required.</p>
-    </section>
-
-    <footer className="footer"><div className="shell"><div><div className="brand invert"><span className="mark">C</span>CLAWHOUSE</div><h2>What would you<br/>stop doing tomorrow?</h2></div><div className="footer-right"><p>Tell us the dull, repetitive, easy-to-forget work. We’ll tell you what can be handed over.</p><a className="button acid" href="mailto:hello@studiobeasophia.com?subject=Build%20my%20AI%20worker">BUILD MY WORKER <ArrowUpRight size={17}/></a><small>A Studio Bea Sophia experiment in useful AI.</small></div></div></footer>
+    <footer className="footer-new">
+      <div className="shell footer-grid"><div className="footer-title"><span className="brand invert"><span className="mark">C</span>CLAWHOUSE</span><h2>WHAT WOULD YOU<br/><em>STOP DOING</em><br/>TOMORROW?</h2></div><div className="footer-side"><p>Tell us the dull, repetitive, easy-to-forget work. We’ll tell you what can be handed over.</p><a className="button acid" href="mailto:hello@studiobeasophia.com?subject=Build%20my%20AI%20worker">BUILD MY WORKER <ArrowUpRight/></a><div className="footer-meta"><span>PRIVATE BY DESIGN</span><span>STUDIO BEA SOPHIA / 2026</span></div></div></div>
+    </footer>
   </main>
 }
