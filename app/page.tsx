@@ -1,7 +1,6 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { motion } from 'framer-motion'
 import { ArrowUpRight, Check, CircleDot, LockKeyhole, Orbit, PlugZap, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 
 const AgentScene = dynamic(()=>import('@/components/AgentScene'),{ssr:false})
@@ -21,7 +20,7 @@ const stack = [
 ]
 
 function Reveal({children,delay=0}:{children:React.ReactNode,delay?:number}){
-  return <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.22}} transition={{duration:.75,delay,ease:[.2,.8,.2,1]}}>{children}</motion.div>
+  return <div className="reveal" style={{animationDelay:`${delay}s`}}>{children}</div>
 }
 
 export default function Home(){
